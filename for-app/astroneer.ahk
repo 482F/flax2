@@ -4,4 +4,8 @@ vk1D & w:: {
   util.key.down("w")
 }
 
+vk1D & LButton:: {
+  util.key.down("LButton")
+}
+
 #HotIf
