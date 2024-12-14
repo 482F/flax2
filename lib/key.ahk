@@ -8,6 +8,12 @@ class _key {
   static up(key) {
     send("{Blind}{" . key . " up}")
   }
+  static tap(key, downMs := 100, sleepMs := 100) {
+    util.key.down(key)
+    sleep(downMs)
+    util.key.up(key)
+    sleep(sleepMs)
+  }
   static toggle(key) {
     while (getKeyState(key, "P")) {
       sleep(100)
