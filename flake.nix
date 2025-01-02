@@ -24,8 +24,8 @@
         )
         (builtins.filter (value: value != null))
       ];
-      substituted = pkgs.writeTextFile {
-        name = "flax2.ahk";
+      applyIncludeAll = ahkPath: (pkgs.writeTextFile {
+        name = builtins.baseNameOf ahkPath;
         text =
           builtins.replaceStrings
           (builtins.map (dir: "@include-all ${dir}@") dirs)
@@ -43,8 +43,8 @@
               (builtins.concatStringsSep "\n")
             ])
           dirs)
-          (builtins.readFile ./flax2.ahk);
-      };
+          (builtins.readFile ahkPath);
+      });
     in
       pkgs.stdenv.mkDerivation {
         name = "flax2";
@@ -55,7 +55,7 @@
 
           chmod -R 744 $out/src
           rm $out/src/flax2.ahk
-          ln -s ${substituted} $out/src/flax2.ahk
+          ln -s ${applyIncludeAll ./flax2.ahk} $out/src/flax2.ahk
 
           echo "#!/usr/bin/env bash" > $out/bin/flax2
           echo 'cd $(dirname $0)/../src; ahk.exe flax2.ahk' >> $out/bin/flax2
