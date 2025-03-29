@@ -45,6 +45,54 @@
           dirs)
           (builtins.readFile ahkPath);
       });
+      rawBody = builtins.readFile ./flax2.ahk;
+      resolveIncludeRemote = ahkPath: let
+        infos = pkgs.lib.pipe ahkPath [
+          builtins.readFile
+          (builtins.split "@include-remote ([^@ ]+) ([^@ ]+) ?([^@ ]+)?@(\n|$)")
+          (builtins.filter (e: builtins.typeOf e == "list"))
+          (builtins.map (list: {
+            name = builtins.elemAt list 0;
+            path = builtins.elemAt list 1;
+            hash = builtins.elemAt list 2;
+          }))
+          (builtins.map ({
+            name,
+            path,
+            hash,
+          }: {
+            inherit name;
+            from =
+              "@include-remote ${name} ${path}"
+              + (
+                if hash == null
+                then ""
+                else " ${hash}"
+              )
+              + "@";
+            to = ''#include "remote\${name}.ahk"'';
+            file =
+              if (builtins.match ".+://.+" path) != null
+              then
+                pkgs.fetchurl {
+                  inherit hash;
+                  url = path;
+                }
+              else builtins.toFile (builtins.baseNameOf path) (builtins.readFile path);
+          }))
+        ];
+      in {
+        inherit infos;
+        file = pkgs.writeTextFile {
+          name = builtins.baseNameOf ahkPath;
+          text =
+            builtins.replaceStrings
+            (builtins.map ({from, ...}: from) infos)
+            (builtins.map ({to, ...}: to) infos)
+            (builtins.readFile ahkPath);
+        };
+      };
+      resolved = resolveIncludeRemote (applyIncludeAll ./flax2.ahk);
     in
       pkgs.stdenv.mkDerivation {
         name = "flax2";
@@ -54,8 +102,19 @@
           cp -ai $src $out/src
 
           chmod -R 744 $out/src
+
+          mkdir $out/src/remote
+          ${pkgs.lib.pipe (resolved.infos) [
+            (builtins.map ({
+              name,
+              file,
+              ...
+            }: ''ln -s ${file} $out/src/remote/${name}.ahk''))
+            (builtins.concatStringsSep "\n")
+          ]}
+
           rm $out/src/flax2.ahk
-          ln -s ${applyIncludeAll ./flax2.ahk} $out/src/flax2.ahk
+          ln -s ${resolved.file} $out/src/flax2.ahk
 
           echo "#!/usr/bin/env bash" > $out/bin/flax2
           echo 'cd $(dirname $0)/../src; ahk.exe flax2.ahk' >> $out/bin/flax2
