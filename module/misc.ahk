@@ -28,3 +28,7 @@ vk1D & 5::0
 vk1D & AppsKey:: {
   reload
 }
+
+Media_Play_Pause:: {
+  return
+}
