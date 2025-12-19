@@ -10,6 +10,9 @@ DetectHiddenWindows true
 ; C: 大文字小文字を区別, ?: 他の単語中でも発火
 #Hotstring C ?
 
+A_HotkeyInterval := 2000
+A_MaxHotkeysPerInterval := 99999999 ; 2s 以内のホットキー実行数上限
+
 ::flax2reload:: {
   reload()
 }
