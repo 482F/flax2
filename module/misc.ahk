@@ -25,3 +25,6 @@ vk1D & 3::8
 vk1D & 4::9
 vk1D & 5::0
 
+vk1D & AppsKey:: {
+  reload
+}
