@@ -117,7 +117,7 @@
           ln -s ${resolved.file} $out/src/flax2.ahk
 
           echo "#!/usr/bin/env bash" > $out/bin/flax2
-          echo 'cd $(dirname $0)/../src; ahk.exe flax2.ahk' >> $out/bin/flax2
+          echo 'cd $(dirname $0)/../src; gsudo.exe "$(wslpath -w "$(readlink -f "$(which ahk.exe)")")" flax2.ahk' >> $out/bin/flax2
           chmod 744 $out/bin/*
         '';
       };
